@@ -1,0 +1,112 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Odin WASM + Sokol Mock</title>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <script type="module">
+      const canvas = document.getElementById("canvas");
+      canvas.width = 800;
+      canvas.height = 600;
+      const gl = canvas.getContext("webgl2");
+
+      // Minimal mock of the imports Odin expects
+      const odin_env = {
+        write: (fd, ptr, len) => {
+          console.log("write called");
+          return len;
+        },
+        time_now: () => performance.now(),
+        pow: Math.pow,
+        sin: Math.sin,
+        cos: Math.cos,
+      };
+
+      const env = {
+        sglue_environment: () => {
+        },
+        sg_setup: (desc) => {
+          console.log("sg_setup:", desc);
+        },
+        sg_make_buffer: (params) => {
+          console.log("sg_make_buffer:", params);
+          return {};
+        },
+        sg_make_sampler: (desc) => {
+          console.log("sg_make_sampler:", desc);
+          return {};
+        },
+        sg_query_backend: () => {
+          console.log("sg_query_backend");
+          return 0;
+        },
+        sg_make_shader: (desc) => {
+          console.log("sg_make_shader:", desc);
+          return {};
+        },
+        sg_make_pipeline: (desc) => {
+          console.log("sg_make_pipeline:", desc);
+          return {};
+        },
+        sapp_run: (params) => {
+          console.log("sapp_run:", params);
+        },
+        sapp_toggle_fullscreen: () => {
+          console.log("sapp_toggle_fullscreen");
+        },
+        sg_update_buffer: (buf_id, data_ptr, data_size) => {
+          console.log("sg_update_buffer:", buf_id, data_ptr, data_size);
+        },
+        sglue_swapchain: () => {
+          console.log("sglue_swapchain");
+        },
+        sg_begin_pass: (pass) => {
+          console.log("sg_begin_pass:", pass);
+        },
+        sg_apply_pipeline: (pip_id) => {
+          console.log("sg_apply_pipeline:", pip_id);
+        },
+        sg_apply_bindings: (bindings) => {
+          console.log("sg_apply_bindings:", bindings);
+        },
+        sg_apply_uniforms: (stage, ub_index, data_ptr, data_size) => {
+          console.log("sg_apply_uniforms:", stage, ub_index, data_ptr, data_size);
+        },
+        sg_draw: (base_element, num_elements, num_instances) => {
+          console.log("sg_draw:", base_element, num_elements, num_instances);
+        },
+        sg_end_pass: () => {
+          console.log("sg_end_pass");
+        },
+        sg_commit: () => {
+          console.log("sg_commit");
+        },
+        sg_shutdown: () => {
+          console.log("sg_shutdown");
+        },
+        sg_make_image: (desc) => {
+          console.log("sg_make_image:", desc);
+          return {};
+        },
+        slog_func: (tag, log_level, log_item_id, message_or_null, line_nr, filename_or_null, user_data) => {
+          console.log("slog_func:", tag, log_level, log_item_id, message_or_null, line_nr, filename_or_null, user_data);
+        },
+      };
+
+      // Load your WASM
+      (async () => {
+        const wasm = await fetch("blue.wasm");
+        const bytes = await wasm.arrayBuffer();
+        const { instance } = await WebAssembly.instantiate(bytes, {
+          odin_env,
+          env,
+        });
+        console.log("ok?");
+        console.log(instance.exports);
+        if (instance.exports._start) instance.exports._start();
+      })();
+    </script>
+  </body>
+</html>
